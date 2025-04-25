@@ -12,16 +12,16 @@ import androidx.navigation.NavHostController
 import com.example.tmdb_project.navigation.NavScreen
 
 @Composable
-fun WatchlistScreen(navController: NavHostController) {
-    MainScreenLayout(navController, "Watchlist") {
+fun DetailScreen(navController: NavHostController) {
+    MainScreenLayout(navController, "Detail of ") {
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Toto je čtvrtá obrazovka")
-            Button(onClick = { navController.popBackStack(NavScreen.HomeScreen.route, false) }) {
-                Text("Zpět na první")
+            Text("Toto je detail")
+            Button(onClick = { navController.navigate(NavScreen.WatchlistScreen.route) }) {
+                Text("Jdi na třetí")
             }
         }
     }

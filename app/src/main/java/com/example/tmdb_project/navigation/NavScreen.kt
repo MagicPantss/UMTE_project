@@ -5,4 +5,5 @@ sealed class NavScreen(val route: String) {
     object FindScreen : NavScreen("find_screen")
     object FavouriteScreen : NavScreen("favourite_screen")
     object WatchlistScreen : NavScreen("watchlist_screen")
+    object DetailScreen : NavScreen("detail_screen")
 }

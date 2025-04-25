@@ -4,38 +4,33 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.tmdb_project.api.RetrofitInstance
 import com.example.tmdb_project.navigation.NavScreen
+import com.example.tmdb_project.repository.TMDBRepository
 import com.example.tmdb_project.ui.screens.FindScreen
 import com.example.tmdb_project.ui.screens.FavouriteScreen
+import com.example.tmdb_project.ui.screens.DetailScreen
 import com.example.tmdb_project.ui.screens.MainScreenLayout
 import com.example.tmdb_project.ui.screens.WatchlistScreen
 import com.example.tmdb_project.ui.theme.TMDB_projectTheme
+import com.example.tmdb_project.ui.utils.TrendingItemCard
+import com.example.tmdb_project.viewmodel.TrendingViewModel
+import com.example.tmdb_project.viewmodel.TrendingViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,10 +38,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TMDB_projectTheme {
-                    /*Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )*/
                     AppNavigation()
             }
         }
@@ -54,24 +45,33 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Composable
 fun HomeScreen(navController: NavHostController) {
+    val viewModel: TrendingViewModel = viewModel(
+        factory = TrendingViewModelFactory(
+            TMDBRepository(RetrofitInstance.api)
+        )
+    )
+    val trending by viewModel.trendingList.collectAsState()
+
     MainScreenLayout(navController, "Discover trending") {
-        Column(
-            Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp)
         ) {
-            Text("Toto je hlavní obrazovka")
-            Button(onClick = { navController.navigate(NavScreen.FindScreen.route) }) {
-                Text("Jdi na druhou")
+            itemsIndexed(trending.orEmpty().filterNotNull()) { index, item ->
+                TrendingItemCard(
+                    item = item,
+                    onAddToFavorites = { /* TODO */ },
+                    onAddToWatchlist = { /* TODO */ },
+                    onItemClick = {
+                        //navController.navigate("${NavScreen.DetailScreen.route}/${item.id}")
+                    }
+                )
+
+                // Zde spustíme další načtení, pokud jsme blízko konci seznamu
+                if (index >= trending!!.size - 5) {
+                    viewModel.loadNextPage()
+                }
             }
         }
     }
@@ -85,13 +85,6 @@ fun AppNavigation() {
         composable(NavScreen.FavouriteScreen.route) { FavouriteScreen(navController) }
         composable(NavScreen.WatchlistScreen.route) { WatchlistScreen(navController) }
         composable(NavScreen.HomeScreen.route) { HomeScreen(navController) }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TMDB_projectTheme {
-        Greeting("Android")
+        composable(NavScreen.DetailScreen.route) { DetailScreen(navController) }
     }
 }
