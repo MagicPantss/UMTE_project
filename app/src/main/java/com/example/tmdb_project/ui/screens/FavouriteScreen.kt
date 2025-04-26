@@ -1,13 +1,10 @@
 package com.example.tmdb_project.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,11 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.FavoritesRepository
+import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.ui.utils.TrendingItemCard
 
 @Composable
 fun FavouriteScreen(navController: NavHostController) {
     val favorites by FavoritesRepository.favorites.collectAsState()
+    val watchlist by WatchlistRepository.watchlist.collectAsState()
 
     MainScreenLayout(navController, "Favourites") {
         if (favorites.isEmpty()) {
@@ -39,11 +38,13 @@ fun FavouriteScreen(navController: NavHostController) {
             ) {
                 items(favorites) { item ->
                     val isFav = favorites.any { it.id == item.id }
+                    val inWL = watchlist.any { it.movie.id == item.id }
                     TrendingItemCard(
                         item = item,
                         isFavorite = isFav,
                         onFavoriteClick = { FavoritesRepository.remove(item) },
-                        onAddToWatchlist = { /* TODO */ },
+                        isInWatchlist = inWL,
+                        onWatchlistClick = { /* TODO */ },
                         onItemClick = {
                             navController.navigate(NavScreen.DetailScreen.createRoute(item.id ?: 0))
                         }

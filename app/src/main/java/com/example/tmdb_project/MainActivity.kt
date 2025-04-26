@@ -22,6 +22,7 @@ import com.example.tmdb_project.api.RetrofitInstance
 import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.TMDBRepository
+import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.ui.screens.FindScreen
 import com.example.tmdb_project.ui.screens.FavouriteScreen
 import com.example.tmdb_project.ui.screens.DetailScreen
@@ -53,6 +54,7 @@ fun HomeScreen(navController: NavHostController) {
     )
     val trending by viewModel.trendingList.collectAsState()
     val favorites by FavoritesRepository.favorites.collectAsState()
+    val watchlist by WatchlistRepository.watchlist.collectAsState()
 
     MainScreenLayout(navController, "Discover trending") {
         LazyColumn(
@@ -61,13 +63,18 @@ fun HomeScreen(navController: NavHostController) {
         ) {
             itemsIndexed(trending.orEmpty().filterNotNull()) { index, item ->
                 val isFav = favorites.any { it.id == item.id }
+                val inWL = watchlist.any { it.movie.id == item.id }
                 TrendingItemCard(
                     item = item,
                     isFavorite = isFav,
                     onFavoriteClick = {
                         if (isFav) FavoritesRepository.remove(item)
                         else       FavoritesRepository.add(item) },
-                    onAddToWatchlist = { /* TODO */ },
+                    isInWatchlist = inWL,                            // ← nový parametr
+                    onWatchlistClick = {
+                        if (inWL) WatchlistRepository.remove(item)
+                        else      WatchlistRepository.add(item)
+                    },
                     onItemClick = {
                         //navController.navigate("${NavScreen.DetailScreen.route}/${item.id}")
                         navController.navigate(NavScreen.DetailScreen.createRoute(item.id ?: 0))

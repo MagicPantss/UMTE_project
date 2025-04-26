@@ -21,6 +21,7 @@ import coil.compose.AsyncImage
 import com.example.tmdb_project.data.Trending
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -34,7 +35,8 @@ fun TrendingItemCard(
     item: Trending,
     isFavorite: Boolean,
     onFavoriteClick: () -> Unit,
-    onAddToWatchlist: () -> Unit,
+    isInWatchlist: Boolean,
+    onWatchlistClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
     val isFav by remember { derivedStateOf { FavoritesRepository.isFavorite(item) } }
@@ -97,8 +99,12 @@ fun TrendingItemCard(
                             tint = if (isFavorite) Color.Red else LocalContentColor.current
                         )
                     }
-                    IconButton(onClick = onAddToWatchlist) {
-                        Icon(Icons.Filled.Add, contentDescription = "Add to watchlist")
+                    IconButton(onClick = onWatchlistClick) {
+                        Icon(
+                            imageVector = if (isInWatchlist) Icons.Default.List else Icons.Filled.Add,
+                            contentDescription = null,
+                            tint = if (isInWatchlist) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                        )
                     }
                 }
             }
