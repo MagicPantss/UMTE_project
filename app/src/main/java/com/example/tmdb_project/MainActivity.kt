@@ -64,6 +64,7 @@ fun HomeScreen(navController: NavHostController) {
                     onAddToWatchlist = { /* TODO */ },
                     onItemClick = {
                         //navController.navigate("${NavScreen.DetailScreen.route}/${item.id}")
+                        navController.navigate(NavScreen.DetailScreen.createRoute(item.id ?: 0))
                     }
                 )
 
@@ -84,6 +85,11 @@ fun AppNavigation() {
         composable(NavScreen.FavouriteScreen.route) { FavouriteScreen(navController) }
         composable(NavScreen.WatchlistScreen.route) { WatchlistScreen(navController) }
         composable(NavScreen.HomeScreen.route) { HomeScreen(navController) }
-        composable(NavScreen.DetailScreen.route) { DetailScreen(navController) }
+        composable(
+            route = "detail_screen/{movieId}"
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
+            DetailScreen(navController, movieId)
+        }
     }
 }
