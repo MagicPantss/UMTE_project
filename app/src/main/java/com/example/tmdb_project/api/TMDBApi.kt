@@ -13,5 +13,4 @@ interface TMDBApi {
         @Query("page") page: Int = 1
     ): TrendingAllRes
 
-
 }
