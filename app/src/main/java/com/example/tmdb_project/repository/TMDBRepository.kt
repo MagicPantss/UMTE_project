@@ -1,6 +1,7 @@
 package com.example.tmdb_project.repository
 
 import com.example.tmdb_project.api.TMDBApi
+import com.example.tmdb_project.data.MovieDetail
 import com.example.tmdb_project.data.Trending
 import com.example.tmdb_project.data.TrendingAllRes
 
@@ -9,7 +10,7 @@ class TMDBRepository(private val api: TMDBApi) {
         return api.getTrending(page = page)
     }
 
-    suspend fun getMovieDetails(movieId: Int): Trending {
+    suspend fun getMovieDetails(movieId: Int): MovieDetail {
         return api.getMovieDetails(movieId = movieId)
     }
 }

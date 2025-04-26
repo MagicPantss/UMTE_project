@@ -2,6 +2,7 @@ package com.example.tmdb_project.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tmdb_project.data.MovieDetail
 import com.example.tmdb_project.data.Trending
 import com.example.tmdb_project.repository.TMDBRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,8 +11,8 @@ import kotlinx.coroutines.launch
 
 class DetailViewModel(private val repository: TMDBRepository) : ViewModel() {
 
-    private val _movieDetail = MutableStateFlow<Trending?>(null)
-    val movieDetail: StateFlow<Trending?> = _movieDetail
+    private val _movieDetail = MutableStateFlow<MovieDetail?>(null)
+    val movieDetail: StateFlow<MovieDetail?> = _movieDetail
 
     fun loadMovieDetail(movieId: Int) {
         viewModelScope.launch {

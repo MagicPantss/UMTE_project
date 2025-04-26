@@ -1,5 +1,6 @@
 package com.example.tmdb_project.api
 
+import com.example.tmdb_project.data.MovieDetail
 import com.example.tmdb_project.data.Trending
 import com.example.tmdb_project.data.TrendingAllRes
 import retrofit2.http.GET
@@ -20,6 +21,6 @@ interface TMDBApi {
         @Path("movie_id") movieId: Int,
         @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
         @Query("language") language: String = "en-US"
-    ): Trending
+    ): MovieDetail
 
 }

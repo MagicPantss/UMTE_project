@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -21,11 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,49 +35,52 @@ import coil.compose.AsyncImage
 import com.example.tmdb_project.api.RetrofitInstance
 import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.TMDBRepository
-import com.example.tmdb_project.ui.utils.genreMap
+import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.viewmodel.DetailViewModel
 import com.example.tmdb_project.viewmodel.DetailViewModelFactory
 
 @Composable
 fun DetailScreen(navController: NavHostController, movieId: Int) {
     val viewModel: DetailViewModel = viewModel(
-        factory = DetailViewModelFactory(
-            TMDBRepository(RetrofitInstance.api)
-        )
+        factory = DetailViewModelFactory(TMDBRepository(RetrofitInstance.api))
     )
-    val movieDetail by viewModel.movieDetail.collectAsState()
 
-    var isFavorite by remember { mutableStateOf(false) }
-    var isInWatchlist by remember { mutableStateOf(false) }
+    // 1) data
+    val movie by viewModel.movieDetail.collectAsState()
+    val favorites by FavoritesRepository.favorites.collectAsState()
+    val watchlist by WatchlistRepository.watchlist.collectAsState()
 
-    LaunchedEffect(movieDetail) {
-        movieDetail?.let { isFavorite = FavoritesRepository.isFavorite(it) }
-    }
-
+    // 2) načti detail
     LaunchedEffect(movieId) {
         viewModel.loadMovieDetail(movieId)
     }
 
     MainScreenLayout(navController, "Detail") {
-        if (movieDetail != null) {
-            val movie = movieDetail!!
+        // scrollable kontejner
+        val scroll = rememberScrollState()
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scroll)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            movie?.let { m ->
+                val isFav = favorites.any { it.id == m.id }
+                val inWL  = watchlist.any { it.movie.id == m.id }
+
+                // plakát
                 AsyncImage(
-                    model = "https://image.tmdb.org/t/p/w500${movie.posterPath}",
-                    contentDescription = movie.title ?: movie.name,
+                    model = "https://image.tmdb.org/t/p/w500${m.posterPath}",
+                    contentDescription = m.title,
                     modifier = Modifier
                         .height(300.dp)
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                 )
 
+                // karta s detailem
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -88,89 +91,68 @@ fun DetailScreen(navController: NavHostController, movieId: Int) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = movie.title ?: movie.name ?: "No Title",
+                            text = m.title,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
 
-                        Text(
-                            text = "Release Date: ${movie.releaseDate ?: movie.firstAirDate ?: "Unknown"}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Text("Release Date: ${m.releaseDate}")
+                        m.runtime?.let { Text("Runtime: $it min") }
+                        Text("Genres: ${m.genres.joinToString { it.name }}")
+                        Text("Status: ${m.status}")
+                        m.tagline?.let {
+                            Text(
+                                text = "“$it”",
+                                style = MaterialTheme.typography.bodyMedium
+                                    .copy(fontStyle = FontStyle.Italic)
+                            )
+                        }
 
-                        Text(
-                            text = "Genres: ${
-                                movie.genreIds?.joinToString(", ") { id ->
-                                    genreMap[id] ?: "Unknown"
-                                } ?: "Unknown"
-                            }",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(text = "${movie.genreIds}")
-
-                        Text(
-                            text = "Original Language: ${movie.originalLanguage?.uppercase() ?: "Unknown"}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Text(
-                            text = "Average Rating: ${movie.voteAverage?.toString() ?: "N/A"}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Text(
-                            text = "Vote Count: ${movie.voteCount?.toString() ?: "N/A"}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Text(
-                            text = "Overview:",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp
-                        )
-
-                        Text(
-                            text = movie.overview ?: "No overview available",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Text("Overview:", fontWeight = FontWeight.SemiBold)
+                        Text(m.overview)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // ---- Tlačítka Favorite / Watchlist ----
+                        // tlačítka
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Button(
                                 onClick = {
-                                    movieDetail?.let {
-                                        if (isFavorite) FavoritesRepository.remove(it)
-                                        else FavoritesRepository.add(it)
-                                        isFavorite = !isFavorite
-                                    }
+                                    if (isFav) FavoritesRepository.remove(m)
+                                    else        FavoritesRepository.add(m)
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                    containerColor = if (isFav)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.secondary
                                 )
                             ) {
-                                Text(if (isFavorite) "Favorited ❤️" else "Add to Favorites")
+                                Text(if (isFav) "Favorited ❤️" else "Add to Favorites")
                             }
-
                             Button(
-                                onClick = { isInWatchlist = !isInWatchlist },
+                                onClick = {
+                                    if (inWL) WatchlistRepository.remove(m)
+                                    else      WatchlistRepository.add(m)
+                                },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isInWatchlist) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                    containerColor = if (inWL)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.secondary
                                 )
                             ) {
-                                Text(if (isInWatchlist) "In Watchlist 🎬" else "Add to Watchlist")
+                                Text(if (inWL) "In Watchlist 🎬" else "Add to Watchlist")
                             }
                         }
                     }
                 }
-            }
-        } else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
+            } ?: Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 100.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
