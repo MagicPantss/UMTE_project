@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tmdb_project.api.RetrofitInstance
 import com.example.tmdb_project.navigation.NavScreen
+import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.TMDBRepository
 import com.example.tmdb_project.ui.screens.FindScreen
 import com.example.tmdb_project.ui.screens.FavouriteScreen
@@ -51,6 +52,7 @@ fun HomeScreen(navController: NavHostController) {
         )
     )
     val trending by viewModel.trendingList.collectAsState()
+    val favorites by FavoritesRepository.favorites.collectAsState()
 
     MainScreenLayout(navController, "Discover trending") {
         LazyColumn(
@@ -58,9 +60,13 @@ fun HomeScreen(navController: NavHostController) {
             contentPadding = PaddingValues(16.dp)
         ) {
             itemsIndexed(trending.orEmpty().filterNotNull()) { index, item ->
+                val isFav = favorites.any { it.id == item.id }
                 TrendingItemCard(
                     item = item,
-                    onAddToFavorites = { /* TODO */ },
+                    isFavorite = isFav,
+                    onFavoriteClick = {
+                        if (isFav) FavoritesRepository.remove(item)
+                        else       FavoritesRepository.add(item) },
                     onAddToWatchlist = { /* TODO */ },
                     onItemClick = {
                         //navController.navigate("${NavScreen.DetailScreen.route}/${item.id}")

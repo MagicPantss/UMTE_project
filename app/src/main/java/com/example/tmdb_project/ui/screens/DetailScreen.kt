@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.tmdb_project.api.RetrofitInstance
+import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.TMDBRepository
 import com.example.tmdb_project.ui.utils.genreMap
 import com.example.tmdb_project.viewmodel.DetailViewModel
@@ -49,6 +50,10 @@ fun DetailScreen(navController: NavHostController, movieId: Int) {
 
     var isFavorite by remember { mutableStateOf(false) }
     var isInWatchlist by remember { mutableStateOf(false) }
+
+    LaunchedEffect(movieDetail) {
+        movieDetail?.let { isFavorite = FavoritesRepository.isFavorite(it) }
+    }
 
     LaunchedEffect(movieId) {
         viewModel.loadMovieDetail(movieId)
@@ -101,6 +106,7 @@ fun DetailScreen(navController: NavHostController, movieId: Int) {
                             }",
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        Text(text = "${movie.genreIds}")
 
                         Text(
                             text = "Original Language: ${movie.originalLanguage?.uppercase() ?: "Unknown"}",
@@ -136,7 +142,13 @@ fun DetailScreen(navController: NavHostController, movieId: Int) {
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Button(
-                                onClick = { isFavorite = !isFavorite },
+                                onClick = {
+                                    movieDetail?.let {
+                                        if (isFavorite) FavoritesRepository.remove(it)
+                                        else FavoritesRepository.add(it)
+                                        isFavorite = !isFavorite
+                                    }
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                                 )

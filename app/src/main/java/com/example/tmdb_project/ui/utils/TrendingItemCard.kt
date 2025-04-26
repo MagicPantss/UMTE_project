@@ -21,15 +21,24 @@ import coil.compose.AsyncImage
 import com.example.tmdb_project.data.Trending
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import com.example.tmdb_project.repository.FavoritesRepository
 
 @Composable
 fun TrendingItemCard(
     item: Trending,
-    onAddToFavorites: () -> Unit,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
     onAddToWatchlist: () -> Unit,
     onItemClick: () -> Unit
 ) {
+    val isFav by remember { derivedStateOf { FavoritesRepository.isFavorite(item) } }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -63,6 +72,8 @@ fun TrendingItemCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
+                Text(text = "${item.id}")
+
                 Text(
                     text = item.firstAirDate ?: item.releaseDate ?: "Unknown date",
                     style = MaterialTheme.typography.bodySmall
@@ -79,8 +90,12 @@ fun TrendingItemCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row {
-                    IconButton(onClick = onAddToFavorites) {
-                        Icon(Icons.Filled.Favorite, contentDescription = "Add to favorites")
+                    IconButton(onClick = onFavoriteClick) {
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = null,
+                            tint = if (isFavorite) Color.Red else LocalContentColor.current
+                        )
                     }
                     IconButton(onClick = onAddToWatchlist) {
                         Icon(Icons.Filled.Add, contentDescription = "Add to watchlist")
