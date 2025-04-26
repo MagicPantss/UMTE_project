@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,7 +66,7 @@ fun TrendingItemCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Release date if available
-                (item as? com.example.tmdb_project.data.MovieItem)?.let {
+                (item as? MovieItem)?.let {
                     Text(
                         text = item.releaseDate ?: "Unknown date",
                         style = MaterialTheme.typography.bodySmall

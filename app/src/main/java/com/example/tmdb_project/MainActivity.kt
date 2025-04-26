@@ -15,9 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.tmdb_project.api.RetrofitInstance
 import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.FavoritesRepository
@@ -70,18 +72,18 @@ fun HomeScreen(navController: NavHostController) {
                     onFavoriteClick = {
                         if (isFav) FavoritesRepository.remove(item)
                         else       FavoritesRepository.add(item) },
-                    isInWatchlist = inWL,                            // ← nový parametr
+                    isInWatchlist = inWL,
                     onWatchlistClick = {
                         if (inWL) WatchlistRepository.remove(item)
                         else      WatchlistRepository.add(item)
                     },
                     onItemClick = {
-                        //navController.navigate("${NavScreen.DetailScreen.route}/${item.id}")
-                        navController.navigate(NavScreen.DetailScreen.createRoute(item.id ?: 0))
+                        val mediaType = item.mediaType ?: "movie"
+                        navController.navigate(NavScreen.DetailScreen.createRoute(mediaType, item.id))
                     }
                 )
 
-                // Zde spustíme další načtení, pokud jsme blízko konci seznamu
+                // další načtení, pokud jsme blízko konci seznamu
                 if (index >= trending!!.size - 5) {
                     viewModel.loadNextPage()
                 }
@@ -98,11 +100,17 @@ fun AppNavigation() {
         composable(NavScreen.FavouriteScreen.route) { FavouriteScreen(navController) }
         composable(NavScreen.WatchlistScreen.route) { WatchlistScreen(navController) }
         composable(NavScreen.HomeScreen.route) { HomeScreen(navController) }
+
         composable(
-            route = "detail_screen/{movieId}"
+            route = NavScreen.DetailScreen.route,
+            arguments = listOf(
+                navArgument("type")     { type = NavType.StringType },
+                navArgument("movieId") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
-            DetailScreen(navController, movieId)
+            val type    = backStackEntry.arguments!!.getString("type")!!
+            val movieId = backStackEntry.arguments!!.getInt("movieId")
+            DetailScreen(navController, type, movieId)
         }
     }
 }

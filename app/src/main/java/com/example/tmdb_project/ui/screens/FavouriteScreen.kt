@@ -13,6 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.tmdb_project.data.MovieDetail
+import com.example.tmdb_project.data.Trending
+import com.example.tmdb_project.data.TVDetail
 import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.WatchlistRepository
@@ -37,16 +40,25 @@ fun FavouriteScreen(navController: NavHostController) {
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(favorites) { item ->
-                    val isFav = favorites.any { it.id == item.id }
-                    val inWL = watchlist.any { it.movie.id == item.id }
+                    val type = when (item) {
+                        is Trending     -> item.mediaType ?: "movie"
+                        is MovieDetail  -> "movie"
+                        is TVDetail     -> "tv"
+                        else            -> "movie"
+                    }
+                    val isFav = true
+                    val inWL  = watchlist.any { it.movie.id == item.id }
+
                     TrendingItemCard(
                         item = item,
                         isFavorite = isFav,
-                        onFavoriteClick = { FavoritesRepository.remove(item) },
-                        isInWatchlist = inWL,
+                        onFavoriteClick  = { FavoritesRepository.remove(item) },
+                        isInWatchlist    = inWL,
                         onWatchlistClick = { /* TODO */ },
-                        onItemClick = {
-                            navController.navigate(NavScreen.DetailScreen.createRoute(item.id ?: 0))
+                        onItemClick      = {
+                            navController.navigate(
+                                NavScreen.DetailScreen.createRoute(type, item.id)
+                            )
                         }
                     )
                 }

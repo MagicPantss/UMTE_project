@@ -1,6 +1,7 @@
 package com.example.tmdb_project.api
 
 import com.example.tmdb_project.data.MovieDetail
+import com.example.tmdb_project.data.TVDetail
 import com.example.tmdb_project.data.Trending
 import com.example.tmdb_project.data.TrendingAllRes
 import retrofit2.http.GET
@@ -22,5 +23,12 @@ interface TMDBApi {
         @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
         @Query("language") language: String = "en-US"
     ): MovieDetail
+
+    @GET("tv/{tv_id}")
+    suspend fun getTvDetails(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
+        @Query("language") language: String = "en-US"
+    ): TVDetail
 
 }
