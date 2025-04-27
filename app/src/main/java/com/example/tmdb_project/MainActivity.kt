@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,6 +35,7 @@ import com.example.tmdb_project.ui.theme.TMDB_projectTheme
 import com.example.tmdb_project.ui.utils.TrendingItemCard
 import com.example.tmdb_project.viewmodel.TrendingViewModel
 import com.example.tmdb_project.viewmodel.TrendingViewModelFactory
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,8 +57,9 @@ fun HomeScreen(navController: NavHostController) {
         )
     )
     val trending by viewModel.trendingList.collectAsState()
-    val favorites by FavoritesRepository.favorites.collectAsState()
-    val watchlist by WatchlistRepository.watchlist.collectAsState()
+    val scope = rememberCoroutineScope()
+    val favorites by FavoritesRepository.favorites.collectAsState(initial = emptyList())
+    val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
 
     MainScreenLayout(navController, "Discover trending") {
         LazyColumn(
@@ -70,12 +73,17 @@ fun HomeScreen(navController: NavHostController) {
                     item = item,
                     isFavorite = isFav,
                     onFavoriteClick = {
-                        if (isFav) FavoritesRepository.remove(item)
-                        else       FavoritesRepository.add(item) },
+                        scope.launch {
+                            if (isFav) FavoritesRepository.remove(item)
+                            else        FavoritesRepository.add(item)
+                        }
+                                      },
                     isInWatchlist = inWL,
                     onWatchlistClick = {
-                        if (inWL) WatchlistRepository.remove(item)
-                        else      WatchlistRepository.add(item)
+                        scope.launch {
+                            if (inWL) WatchlistRepository.remove(item)
+                            else      WatchlistRepository.add(item)
+                        }
                     },
                     onItemClick = {
                         val mediaType = item.mediaType ?: "movie"

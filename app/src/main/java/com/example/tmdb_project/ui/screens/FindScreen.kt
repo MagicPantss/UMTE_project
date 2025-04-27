@@ -18,6 +18,8 @@ import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.ui.utils.TrendingItemCard
 import com.example.tmdb_project.viewmodel.SearchViewModel
 import com.example.tmdb_project.viewmodel.SearchViewModelFactory
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 @Composable
 fun FindScreen(navController: NavHostController) {
@@ -25,6 +27,7 @@ fun FindScreen(navController: NavHostController) {
     val vm: SearchViewModel = viewModel(
         factory = SearchViewModelFactory(repo)
     )
+    val scope = rememberCoroutineScope()
 
     // Collect search results and paging
     val results by vm.results.collectAsState()
@@ -36,8 +39,8 @@ fun FindScreen(navController: NavHostController) {
     var type by remember { mutableStateOf("movie") }
 
     // Collect favorites and watchlist for recomposition
-    val favorites by FavoritesRepository.favorites.collectAsState()
-    val watchlist by WatchlistRepository.watchlist.collectAsState()
+    val favorites by FavoritesRepository.favorites.collectAsState(initial = emptyList())
+    val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
 
     MainScreenLayout(navController, "Search") {
         Column(Modifier.padding(16.dp)) {
@@ -85,13 +88,17 @@ fun FindScreen(navController: NavHostController) {
                             item = item,
                             isFavorite = isFav,
                             onFavoriteClick = {
-                                if (isFav) FavoritesRepository.remove(item)
-                                else        FavoritesRepository.add(item)
+                                scope.launch {
+                                    if (isFav) FavoritesRepository.remove(item)
+                                    else        FavoritesRepository.add(item)
+                                }
                             },
                             isInWatchlist = inWL,
                             onWatchlistClick = {
-                                if (inWL) WatchlistRepository.remove(item)
-                                else      WatchlistRepository.add(item)
+                                scope.launch {
+                                    if (inWL) WatchlistRepository.remove(item)
+                                    else      WatchlistRepository.add(item)
+                                }
                             },
                             onItemClick = {
                                 navController.navigate(

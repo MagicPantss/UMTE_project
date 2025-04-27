@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,13 +40,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.tmdb_project.repository.WatchlistItem
+import com.example.tmdb_project.data.WatchlistItem
 import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.ui.utils.WatchStatus
+import kotlinx.coroutines.launch
 
 @Composable
 fun WatchlistScreen(navController: NavHostController) {
-    val watchlist by WatchlistRepository.watchlist.collectAsState()
+    val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
 
     MainScreenLayout(navController, "Watchlist") {
         if (watchlist.isEmpty()) {
@@ -67,6 +69,7 @@ fun WatchlistScreen(navController: NavHostController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchlistItemRow(item: WatchlistItem) {
+    val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
     val currentStatus = item.status
 
@@ -132,7 +135,9 @@ fun WatchlistItemRow(item: WatchlistItem) {
                                     )
                                 },
                                 onClick = {
-                                    WatchlistRepository.updateStatus(item.movie, status)
+                                    scope.launch {
+                                        WatchlistRepository.updateStatus(item.movie, status)
+                                    }
                                     expanded = false
                                 }
                             )
@@ -143,7 +148,10 @@ fun WatchlistItemRow(item: WatchlistItem) {
 
             Spacer(Modifier.width(8.dp))
 
-            IconButton(onClick = { WatchlistRepository.remove(item.movie) }) {
+            IconButton(onClick = {
+                scope.launch {
+                    WatchlistRepository.remove(item.movie)
+            } } ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Odebrat z watchlistu"

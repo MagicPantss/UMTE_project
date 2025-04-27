@@ -45,6 +45,7 @@ interface TMDBApi {
         @Query("query") query: String,
         @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
         @Query("language") language: String = "en-US",
+        @Query("include_adult") includeAdult: Boolean = false,
         @Query("page") page: Int = 1
     ): TrendingAllRes
 

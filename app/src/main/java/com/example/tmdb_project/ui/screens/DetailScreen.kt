@@ -22,6 +22,7 @@ import com.example.tmdb_project.repository.TMDBRepository
 import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.viewmodel.DetailViewModel
 import com.example.tmdb_project.viewmodel.DetailViewModelFactory
+import kotlinx.coroutines.launch
 
 @Composable
 fun DetailScreen(navController: NavHostController, type: String, itemId: Int) {
@@ -62,8 +63,9 @@ fun DetailScreen(navController: NavHostController, type: String, itemId: Int) {
 
 @Composable
 private fun MovieDetailContent(m: MovieDetail) {
-    val favorites by FavoritesRepository.favorites.collectAsState()
-    val watchlist by WatchlistRepository.watchlist.collectAsState()
+    val scope = rememberCoroutineScope()
+    val favorites by FavoritesRepository.favorites.collectAsState(initial = emptyList())
+    val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
     val isFav = favorites.any { it.id == m.id }
     val inWL = watchlist.any { it.movie.id == m.id }
     val scroll = rememberScrollState()
@@ -115,8 +117,10 @@ private fun MovieDetailContent(m: MovieDetail) {
                 ) {
                     Button(
                         onClick = {
-                            if (isFav) FavoritesRepository.remove(m)
-                            else        FavoritesRepository.add(m)
+                            scope.launch {
+                                if (isFav) FavoritesRepository.remove(m)
+                                else        FavoritesRepository.add(m)
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isFav)
@@ -129,8 +133,10 @@ private fun MovieDetailContent(m: MovieDetail) {
                     }
                     Button(
                         onClick = {
-                            if (inWL) WatchlistRepository.remove(m)
-                            else      WatchlistRepository.add(m)
+                            scope.launch {
+                                if (inWL) WatchlistRepository.remove(m)
+                                else      WatchlistRepository.add(m)
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (inWL)
@@ -149,8 +155,9 @@ private fun MovieDetailContent(m: MovieDetail) {
 
 @Composable
 private fun TvDetailContent(tv: TVDetail) {
-    val favorites by FavoritesRepository.favorites.collectAsState()
-    val watchlist by WatchlistRepository.watchlist.collectAsState()
+    val scope = rememberCoroutineScope()
+    val favorites by FavoritesRepository.favorites.collectAsState(initial = emptyList())
+    val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
     val isFav = favorites.any { it.id == tv.id }
     val inWL = watchlist.any { it.movie.id == tv.id }
     val scroll = rememberScrollState()
@@ -193,8 +200,10 @@ private fun TvDetailContent(tv: TVDetail) {
                 ) {
                     Button(
                         onClick = {
-                            if (isFav) FavoritesRepository.remove(tv)
-                            else         FavoritesRepository.add(tv)
+                            scope.launch {
+                                if (isFav) FavoritesRepository.remove(tv)
+                                else        FavoritesRepository.add(tv)
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isFav)
@@ -207,8 +216,10 @@ private fun TvDetailContent(tv: TVDetail) {
                     }
                     Button(
                         onClick = {
-                            if (inWL) WatchlistRepository.remove(tv)
-                            else      WatchlistRepository.add(tv)
+                            scope.launch {
+                                if (inWL) WatchlistRepository.remove(tv)
+                                else      WatchlistRepository.add(tv)
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (inWL)

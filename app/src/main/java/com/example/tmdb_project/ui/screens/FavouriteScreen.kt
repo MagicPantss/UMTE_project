@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,11 +21,13 @@ import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.ui.utils.TrendingItemCard
+import kotlinx.coroutines.launch
 
 @Composable
 fun FavouriteScreen(navController: NavHostController) {
-    val favorites by FavoritesRepository.favorites.collectAsState()
-    val watchlist by WatchlistRepository.watchlist.collectAsState()
+    val scope = rememberCoroutineScope()
+    val favorites by FavoritesRepository.favorites.collectAsState(initial = emptyList())
+    val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
 
     MainScreenLayout(navController, "Favourites") {
         if (favorites.isEmpty()) {
@@ -52,9 +55,19 @@ fun FavouriteScreen(navController: NavHostController) {
                     TrendingItemCard(
                         item = item,
                         isFavorite = isFav,
-                        onFavoriteClick  = { FavoritesRepository.remove(item) },
-                        isInWatchlist    = inWL,
-                        onWatchlistClick = { /* TODO */ },
+                        onFavoriteClick = {
+                            scope.launch {
+                                if (isFav) FavoritesRepository.remove(item)
+                                else        FavoritesRepository.add(item)
+                            }
+                        },
+                        isInWatchlist = inWL,
+                        onWatchlistClick = {
+                            scope.launch {
+                                if (inWL) WatchlistRepository.remove(item)
+                                else      WatchlistRepository.add(item)
+                            }
+                        },
                         onItemClick      = {
                             navController.navigate(
                                 NavScreen.DetailScreen.createRoute(type, item.id)
