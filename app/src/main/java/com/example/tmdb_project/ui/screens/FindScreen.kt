@@ -29,22 +29,18 @@ fun FindScreen(navController: NavHostController) {
     )
     val scope = rememberCoroutineScope()
 
-    // Collect search results and paging
     val results by vm.results.collectAsState()
     val page by vm.page.collectAsState()
     val total by vm.totalPages.collectAsState()
 
-    // UI state for query and type selection
     var query by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("movie") }
 
-    // Collect favorites and watchlist for recomposition
     val favorites by FavoritesRepository.favorites.collectAsState(initial = emptyList())
     val watchlist by WatchlistRepository.watchlist.collectAsState(initial = emptyList())
 
     MainScreenLayout(navController, "Search") {
         Column(Modifier.padding(16.dp)) {
-            // Search input and type switch
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = query,
@@ -72,7 +68,6 @@ fun FindScreen(navController: NavHostController) {
 
             Spacer(Modifier.height(16.dp))
 
-            // Show results or empty state
             if (results.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No results")
@@ -80,7 +75,6 @@ fun FindScreen(navController: NavHostController) {
             } else {
                 LazyColumn(Modifier.weight(1f)) {
                     items(results) { item ->
-                        // Compute favorite/watchlist state
                         val isFav = favorites.any { it.id == item.id }
                         val inWL = watchlist.any { it.movie.id == item.id }
 
@@ -109,7 +103,6 @@ fun FindScreen(navController: NavHostController) {
                     }
                 }
 
-                // Pagination controls
                 Row(
                     Modifier
                         .fillMaxWidth()

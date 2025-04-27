@@ -56,7 +56,6 @@ fun TrendingItemCard(
                     .fillMaxWidth()
                     .align(Alignment.Top)
             ) {
-                // Title or name
                 Text(
                     text = item.title ?: item.name ?: "No title",
                     style = MaterialTheme.typography.titleMedium,
@@ -65,7 +64,6 @@ fun TrendingItemCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Release date if available
                 (item as? MovieItem)?.let {
                     Text(
                         text = item.releaseDate ?: "Unknown date",
@@ -75,7 +73,6 @@ fun TrendingItemCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Overview if available
                 Text(
                     text = item.overview?.take(100)?.plus("...") ?: "",
                     style = MaterialTheme.typography.bodySmall,

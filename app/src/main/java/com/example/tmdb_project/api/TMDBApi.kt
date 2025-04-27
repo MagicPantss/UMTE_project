@@ -2,8 +2,8 @@ package com.example.tmdb_project.api
 
 import com.example.tmdb_project.data.MovieDetail
 import com.example.tmdb_project.data.TVDetail
-import com.example.tmdb_project.data.Trending
 import com.example.tmdb_project.data.TrendingAllRes
+import com.example.tmdb_project.data.UpcomingResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -48,5 +48,12 @@ interface TMDBApi {
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("page") page: Int = 1
     ): TrendingAllRes
+
+    @GET("movie/upcoming")
+    suspend fun getUpcoming(
+        @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): UpcomingResponse
 
 }

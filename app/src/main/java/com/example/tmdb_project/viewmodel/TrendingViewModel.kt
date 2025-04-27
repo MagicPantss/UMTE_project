@@ -30,7 +30,6 @@ class TrendingViewModel(private val repository: TMDBRepository) : ViewModel() {
                 val response = repository.getTrending(page = currentPage)
                 val newItems = response.results ?: emptyList()
 
-                // Pokud je nových výsledků méně než očekávaná stránka (např. 20), jsme na konci
                 if (newItems.isEmpty()) {
                     isLastPage = true
                 }
@@ -42,7 +41,6 @@ class TrendingViewModel(private val repository: TMDBRepository) : ViewModel() {
                 _trendingList.value = updatedList
                 currentPage++
             } catch (e: Exception) {
-                // Log nebo error handling
             } finally {
                 isLoading = false
             }

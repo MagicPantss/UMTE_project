@@ -39,7 +39,6 @@ fun DetailScreen(navController: NavHostController, type: String, itemId: Int) {
         else                viewModel.loadMovieDetail(itemId)
     }
 
-    // Wrapper to preserve MainScreenLayout (topBar + bottomBar)
     val header = when {
         type == "tv"    -> tv?.title.orEmpty()
         type == "movie" -> movie?.title.orEmpty()

@@ -2,7 +2,6 @@ package com.example.tmdb_project.data
 
 import com.google.gson.annotations.SerializedName
 
-// MovieDetail implementuje MovieItem a doplňuje pole specifická pro detail filmu:
 
 data class MovieDetail(
     val adult: Boolean,

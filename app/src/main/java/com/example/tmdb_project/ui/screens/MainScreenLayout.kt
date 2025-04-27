@@ -30,7 +30,6 @@ fun MainScreenLayout(
     header: String,
     content: @Composable () -> Unit
 ) {
-    // zjistíme, zda jsme mimo HomeScreen
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showHomeIcon = currentRoute != NavScreen.HomeScreen.route
