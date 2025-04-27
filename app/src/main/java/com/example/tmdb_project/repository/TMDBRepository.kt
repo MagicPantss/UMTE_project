@@ -14,4 +14,10 @@ class TMDBRepository(private val api: TMDBApi) {
 
     suspend fun getTvDetails(tvId: Int): TVDetail =
         api.getTvDetails(tvId)
+
+    suspend fun searchMovies(query: String, page: Int): TrendingAllRes =
+        api.searchMovies(query = query, page = page)
+
+    suspend fun searchTv(query: String, page: Int): TrendingAllRes =
+        api.searchTv(query = query, page = page)
 }

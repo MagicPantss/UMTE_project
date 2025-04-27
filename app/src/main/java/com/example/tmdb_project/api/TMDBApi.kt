@@ -31,4 +31,21 @@ interface TMDBApi {
         @Query("language") language: String = "en-US"
     ): TVDetail
 
+    @GET("search/movie")
+    suspend fun searchMovies(
+        @Query("query") query: String,
+        @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
+        @Query("language") language: String = "en-US",
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("page") page: Int = 1
+    ): TrendingAllRes
+
+    @GET("search/tv")
+    suspend fun searchTv(
+        @Query("query") query: String,
+        @Query("api_key") apiKey: String = "f70275ecba3f8587cee024daba1926b0",
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): TrendingAllRes
+
 }
