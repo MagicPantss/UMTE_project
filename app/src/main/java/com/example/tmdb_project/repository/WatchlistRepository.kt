@@ -2,9 +2,10 @@ package com.example.tmdb_project.repository
 
 import com.example.tmdb_project.TMDBApplication
 import com.example.tmdb_project.data.MovieItem
-import com.example.tmdb_project.data.WatchlistItem
+import com.example.tmdb_project.data.Trending
 import com.example.tmdb_project.data.local.WatchlistEntity
 import com.example.tmdb_project.data.local.WatchlistDao
+import com.example.tmdb_project.data.WatchlistItem
 import com.example.tmdb_project.ui.utils.WatchStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -19,10 +20,10 @@ object WatchlistRepository {
             WatchlistItem(
                 movie = object : MovieItem {
                     override val id = e.id
-                    override val name: String? = null
-                    override val title = e.title
+                    override val name: String?  = if (e.mediaType == "tv") e.title else null
+                    override val title: String? = if (e.mediaType == "movie") e.title else null
                     override val posterPath = e.posterPath
-                    override val overview = e.overview
+                    override val overview   = e.overview
                     override val releaseDate = e.releaseDate
                 },
                 status = e.status
@@ -31,15 +32,25 @@ object WatchlistRepository {
     }
 
     suspend fun add(movie: MovieItem) = withContext(Dispatchers.IO) {
+        val mediaType = (movie as? Trending)?.mediaType
+            ?: if (movie is com.example.tmdb_project.data.MovieDetail) "movie" else "tv"
+
+        val titleValue = movie.title ?: movie.name
+
+        val dateValue = when (movie) {
+            is Trending -> movie.releaseDate ?: movie.firstAirDate
+            else        -> movie.releaseDate
+        }
+
         dao.insert(
             WatchlistEntity(
-                id = movie.id,
-                mediaType = "",
-                title = movie.title,
-                posterPath = movie.posterPath,
-                overview = movie.overview,
-                releaseDate = movie.releaseDate,
-                status = WatchStatus.PLANNED
+                id          = movie.id,
+                mediaType   = mediaType,
+                title       = titleValue,
+                posterPath  = movie.posterPath,
+                overview    = movie.overview,
+                releaseDate = dateValue,
+                status      = WatchStatus.PLANNED
             )
         )
     }
@@ -47,13 +58,13 @@ object WatchlistRepository {
     suspend fun remove(movie: MovieItem) = withContext(Dispatchers.IO) {
         dao.delete(
             WatchlistEntity(
-                id = movie.id,
-                mediaType = "",
-                title = null,
-                posterPath = null,
-                overview = null,
+                id          = movie.id,
+                mediaType   = "",
+                title       = null,
+                posterPath  = null,
+                overview    = null,
                 releaseDate = null,
-                status = WatchStatus.PLANNED
+                status      = WatchStatus.PLANNED
             )
         )
     }

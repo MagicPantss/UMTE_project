@@ -14,9 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.tmdb_project.data.MovieDetail
-import com.example.tmdb_project.data.Trending
-import com.example.tmdb_project.data.TVDetail
 import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.FavoritesRepository
 import com.example.tmdb_project.repository.WatchlistRepository
@@ -43,32 +40,28 @@ fun FavouriteScreen(navController: NavHostController) {
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(favorites) { item ->
-                    val type = when (item) {
-                        is Trending     -> item.mediaType ?: "movie"
-                        is MovieDetail  -> "movie"
-                        is TVDetail     -> "tv"
-                        else            -> "movie"
-                    }
+                    // Pokud má item.name hodnotu, je to TV, jinak movie
+                    val type = if (item.name != null) "tv" else "movie"
                     val isFav = true
                     val inWL  = watchlist.any { it.movie.id == item.id }
 
                     TrendingItemCard(
                         item = item,
-                        isFavorite = isFav,
-                        onFavoriteClick = {
+                        isFavorite     = isFav,
+                        onFavoriteClick= {
                             scope.launch {
                                 if (isFav) FavoritesRepository.remove(item)
                                 else        FavoritesRepository.add(item)
                             }
                         },
-                        isInWatchlist = inWL,
+                        isInWatchlist  = inWL,
                         onWatchlistClick = {
                             scope.launch {
                                 if (inWL) WatchlistRepository.remove(item)
                                 else      WatchlistRepository.add(item)
                             }
                         },
-                        onItemClick      = {
+                        onItemClick    = {
                             navController.navigate(
                                 NavScreen.DetailScreen.createRoute(type, item.id)
                             )

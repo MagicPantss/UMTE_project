@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.tmdb_project.data.MovieItem
+import com.example.tmdb_project.data.Trending
 
 @Composable
 fun TrendingItemCard(
@@ -64,12 +65,16 @@ fun TrendingItemCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                (item as? MovieItem)?.let {
+                val dateText = when (item) {
+                    is Trending ->
+                        item.releaseDate ?: item.firstAirDate ?: "Unknown date"
+                    else ->
+                        item.releaseDate ?: "Unknown date"
+                }
                     Text(
-                        text = item.releaseDate ?: "Unknown date",
+                        text = dateText,
                         style = MaterialTheme.typography.bodySmall
                     )
-                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 

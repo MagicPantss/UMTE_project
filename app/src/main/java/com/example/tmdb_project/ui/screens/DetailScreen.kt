@@ -36,14 +36,15 @@ fun DetailScreen(navController: NavHostController, type: String, itemId: Int) {
 
     LaunchedEffect(type, itemId) {
         if (type == "tv") viewModel.loadTvDetail(itemId)
-        else                viewModel.loadMovieDetail(itemId)
+        else viewModel.loadMovieDetail(itemId)
     }
 
     val header = when {
-        type == "tv"    -> tv?.title.orEmpty()
+        type == "tv" -> tv?.name.orEmpty()
         type == "movie" -> movie?.title.orEmpty()
-        else             -> "Detail"
+        else -> "Detail"
     }
+
     MainScreenLayout(navController, header) {
         when {
             type == "tv" && tv != null -> TvDetailContent(tv!!)
@@ -118,7 +119,7 @@ private fun MovieDetailContent(m: MovieDetail) {
                         onClick = {
                             scope.launch {
                                 if (isFav) FavoritesRepository.remove(m)
-                                else        FavoritesRepository.add(m)
+                                else FavoritesRepository.add(m)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -134,7 +135,7 @@ private fun MovieDetailContent(m: MovieDetail) {
                         onClick = {
                             scope.launch {
                                 if (inWL) WatchlistRepository.remove(m)
-                                else      WatchlistRepository.add(m)
+                                else WatchlistRepository.add(m)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -170,7 +171,7 @@ private fun TvDetailContent(tv: TVDetail) {
     ) {
         AsyncImage(
             model = "https://image.tmdb.org/t/p/w500${tv.posterPath}",
-            contentDescription = tv.title,
+            contentDescription = tv.name,
             modifier = Modifier
                 .height(300.dp)
                 .fillMaxWidth()
@@ -185,7 +186,7 @@ private fun TvDetailContent(tv: TVDetail) {
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(tv.title.orEmpty(), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(tv.name.orEmpty(), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 Text("First Air Date: ${tv.releaseDate ?: "Unknown"}")
                 Text("Seasons: ${tv.numberOfSeasons ?: 0}, Episodes: ${tv.numberOfEpisodes ?: 0}")
                 Text("Genres: ${tv.genres.joinToString { it.name }}")
@@ -201,7 +202,7 @@ private fun TvDetailContent(tv: TVDetail) {
                         onClick = {
                             scope.launch {
                                 if (isFav) FavoritesRepository.remove(tv)
-                                else        FavoritesRepository.add(tv)
+                                else FavoritesRepository.add(tv)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -217,7 +218,7 @@ private fun TvDetailContent(tv: TVDetail) {
                         onClick = {
                             scope.launch {
                                 if (inWL) WatchlistRepository.remove(tv)
-                                else      WatchlistRepository.add(tv)
+                                else WatchlistRepository.add(tv)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(

@@ -1,19 +1,9 @@
 package com.example.tmdb_project.ui.screens
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -36,11 +26,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.tmdb_project.data.WatchlistItem
+import com.example.tmdb_project.navigation.NavScreen
 import com.example.tmdb_project.repository.WatchlistRepository
 import com.example.tmdb_project.ui.utils.WatchStatus
 import kotlinx.coroutines.launch
@@ -56,10 +46,15 @@ fun WatchlistScreen(navController: NavHostController) {
             }
         } else {
             LazyColumn(
-                Modifier.fillMaxSize().padding(16.dp)
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 items(watchlist) { item ->
-                    WatchlistItemRow(item)
+                    WatchlistItemRow(
+                        item = item,
+                        navController = navController
+                    )
                 }
             }
         }
@@ -68,34 +63,45 @@ fun WatchlistScreen(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchlistItemRow(item: WatchlistItem) {
+fun WatchlistItemRow(
+    item: WatchlistItem,
+    navController: NavHostController
+) {
     val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
-    val currentStatus = item.status
+
+    val type = if (item.movie.name != null) "tv" else "movie"
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
+            .padding(vertical = 8.dp)
+            .clickable {
+                navController.navigate(
+                    NavScreen.DetailScreen.createRoute(type, item.movie.id)
+                )
+            },
+        shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
         ) {
-            // Plakát
             AsyncImage(
                 model = "https://image.tmdb.org/t/p/w200${item.movie.posterPath}",
-                contentDescription = null,
+                contentDescription = item.movie.title ?: item.movie.name,
                 modifier = Modifier
                     .size(width = 80.dp, height = 120.dp)
-                    .clip(RoundedCornerShape(8.dp))
             )
 
             Spacer(Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = item.movie.title ?: item.movie.name.orEmpty(),
                     style = MaterialTheme.typography.titleMedium,
@@ -109,36 +115,27 @@ fun WatchlistItemRow(item: WatchlistItem) {
                     onExpandedChange = { expanded = !expanded }
                 ) {
                     OutlinedTextField(
-                        value = currentStatus.name.lowercase().replaceFirstChar { it.uppercase() },
-                        onValueChange = { /* readOnly */ },
+                        value = item.status.name,
+                        onValueChange = {},
                         readOnly = true,
                         label = { Text("Status") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                        shape = RoundedCornerShape(8.dp),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                         modifier = Modifier
                             .menuAnchor()
-                            .widthIn(min = 100.dp, max = 150.dp)
+                            .widthIn(min = 100.dp, max = 250.dp)
                     )
-
                     ExposedDropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
                         WatchStatus.values().forEach { status ->
                             DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = status.name.lowercase().replaceFirstChar { it.uppercase() }
-                                    )
-                                },
+                                text = { Text(status.name) },
                                 onClick = {
+                                    expanded = false
                                     scope.launch {
                                         WatchlistRepository.updateStatus(item.movie, status)
                                     }
-                                    expanded = false
                                 }
                             )
                         }
@@ -149,11 +146,10 @@ fun WatchlistItemRow(item: WatchlistItem) {
             Spacer(Modifier.width(8.dp))
 
             IconButton(onClick = {
-                scope.launch {
-                    WatchlistRepository.remove(item.movie)
-            } } ) {
+                scope.launch { WatchlistRepository.remove(item.movie) }
+            }) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Icons.Filled.Delete,
                     contentDescription = "Odebrat z watchlistu"
                 )
             }
